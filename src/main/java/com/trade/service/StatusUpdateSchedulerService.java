@@ -4,6 +4,8 @@ import java.time.LocalDateTime;
 import java.util.List;
 import java.util.stream.Collectors;
 
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.scheduling.annotation.Async;
 import org.springframework.scheduling.annotation.EnableAsync;
 import org.springframework.scheduling.annotation.Scheduled;
@@ -14,13 +16,12 @@ import com.trade.model.Status;
 import com.trade.model.Trade;
 import com.trade.repo.TradeRepository;
 
-import lombok.extern.slf4j.Slf4j;
 
 @EnableAsync
-@Slf4j
 @Service
 public class StatusUpdateSchedulerService {
 
+    private final Logger log = LoggerFactory.getLogger(StatusUpdateSchedulerService.class);
     private final TradeRepository tradeRepository;
 
     public StatusUpdateSchedulerService (TradeRepository tradeRepository) {
@@ -30,7 +31,7 @@ public class StatusUpdateSchedulerService {
     @Async
     @Scheduled(fixedRate = 5000)
     void checkAndUpdateTradeStatus () {
-        log.error("Trade status scheduler started");
+        log.debug("Trade status scheduler started");
         // This is very naive way of updating status, in some sophisticated database. I would go for an
         // update query with PENDING_EXECUTION and 60 secs conditions.
         List<Trade> trades = tradeRepository.findAll();

@@ -6,6 +6,8 @@ import com.trade.dto.TradeRequest;
 import com.trade.model.Status;
 import com.trade.model.Trade;
 import lombok.extern.slf4j.Slf4j;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Service;
 
 import java.time.LocalDateTime;
@@ -14,12 +16,13 @@ import java.util.UUID;
 import static com.trade.mapper.TradeMapper.mapToBrokerTrade;
 
 @Service
-@Slf4j
+
 public class TradeService {
     public static final String BUY = "BUY";
     public static final String SELL = "SELL";
     private final TradeRepository tradeRepository;
     private final ExternalBroker externalBroker;
+    private final Logger log = LoggerFactory.getLogger(TradeService.class);
 
     public TradeService (TradeRepository tradeRepository, ExternalBroker externalBroker) {
         this.tradeRepository = tradeRepository;
@@ -27,7 +30,7 @@ public class TradeService {
     }
 
     public String executeBuyOrder (TradeRequest tradeRequest) {
-        log.debug("processing buy order for symbol {}", tradeRequest.getSymbol());
+        log.info("processing buy order for symbol {}", tradeRequest.getSymbol());
         Trade trade = getTrade(BUY, tradeRequest);
         tradeRepository.save(trade);
         externalBroker.execute(mapToBrokerTrade(trade));
@@ -35,7 +38,7 @@ public class TradeService {
     }
 
     public String executeSellOrder (TradeRequest tradeRequest) {
-        log.debug("processing sell order for symbol {}", tradeRequest.getSymbol());
+        log.info("processing sell order for symbol {}", tradeRequest.getSymbol());
         Trade trade = getTrade(SELL, tradeRequest);
         tradeRepository.save(trade);
         return trade.getId();

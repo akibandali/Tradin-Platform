@@ -31,16 +31,22 @@ public class StatusUpdateSchedulerService {
     @Scheduled(fixedRate = 5000)
     void checkAndUpdateTradeStatus () {
         log.error("Trade status scheduler started");
-        //This is very naive way of updating status, in some sophisticated database. I would go for an update query with  PENDING_EXECUTION and 60 secs  conditions.
+        // This is very naive way of updating status, in some sophisticated database. I would go for an
+        // update query with PENDING_EXECUTION and 60 secs conditions.
         List<Trade> trades = tradeRepository.findAll();
-        List<Trade> expiredTrades = trades.stream()
-                                          .filter(trade -> Status.PENDING_EXECUTION.value().equals(trade.getStatus()))
-                                          .filter(trade -> LocalDateTime.now().isAfter(trade.getTimestamp().plusSeconds(60)))
-                                          .map(this::updateStatusAndReason)
-                                          .collect(Collectors.toList());
+        List<Trade> expiredTrades = filterAndUpdateTrades(trades);
         if (!CollectionUtils.isEmpty(expiredTrades)) {
             tradeRepository.saveAll(expiredTrades);
         }
+    }
+
+    public List<Trade> filterAndUpdateTrades (List<Trade> trades) {
+        return trades.stream()
+                     .filter(trade -> Status.PENDING_EXECUTION.value().equals(trade.getStatus()))
+                     .filter(trade -> LocalDateTime.now().isAfter(trade.getTimestamp().plusSeconds(60)))
+                     .map(this::updateStatusAndReason)
+                     .collect(Collectors.toList());
+
     }
 
     private Trade updateStatusAndReason (Trade trade) {
